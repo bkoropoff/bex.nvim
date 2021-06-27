@@ -20,7 +20,7 @@
 --     }
 --
 -- To use a function for custom completion, pass `"-complete=custom"` or
--- `"-complete=customlist"` followed by the callable as arguments
+-- `"-complete=customlist"` followed by the callable as arguments.
 -- It will be invoked with the usual `A`, `L`, `P` arguments specified in
 -- the Vim documentation.  The following trivial example completes all arguments
 -- as `foobar`:
