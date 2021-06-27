@@ -1,3 +1,14 @@
+--- `:autocmd` support.
+--
+-- Defines overrides for the `autocmd` command.  The command to run
+-- when triggered may be a Lua callable instead of raw text.  In this
+-- case, it is invoked with no arguments.  Use `vim.v.event` to get
+-- event parameters, e.g.:
+--
+--     cmd.autocmd(
+--         'DirChanged', '*',
+--         function() print("New dir: " .. vim.v.event.cwd) end)
+
 local cmd = require 'bex.cmd'
 local param = require 'bex.param'
 local bridge = require 'bex.bridge'.autocmd

@@ -1,6 +1,6 @@
 --- `:command` support.
 --
--- Provides special support for `bex.cmd.command`.
+-- Provides overrides for `bex.cmd.command`.
 --
 -- The last argument, the replacement text, may be a
 -- callable instead of a string.  If so, it will be called with a table
@@ -23,11 +23,12 @@
 -- `"-complete=customlist"` followed by the callable as arguments.
 -- It will be invoked with the usual `A`, `L`, `P` arguments specified in
 -- the Vim documentation.  The following trivial example completes all arguments
--- as `foobar`:
+-- as `foobar`.  The command itself simply prints its argument table:
 --
 --     bex.cmd.command(
 --         '-complete=custom', function(a, l, p) return "foobar" end,
---         "MyCommand", ...)
+--         '-nargs=*',
+--         "MyCommand", function(args) print(vim.inspect(args)) end)
 
 local cmd = require('bex.cmd')
 local param = require('bex.param')

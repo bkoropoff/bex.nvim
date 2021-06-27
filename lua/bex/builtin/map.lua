@@ -1,3 +1,16 @@
+--- Keymap command support.
+--
+-- This module (and associated autoloads) provides support for
+-- using standard keymap commands such as `:map` and `:nnoremap`.
+-- However, consider using the `bex.keymap` API instead.
+--
+-- The right-hand side of a mapping may be a Lua callable instead
+-- of a raw command or expression, in which case it is invoked with no arguments.
+-- Use `vim.v` to access any parameters.  The following trivial example
+-- prints the count when the key sequence is pressed:
+--
+--     cmd.nnoremap('<buffer>', '<Leader>zzz', function() print(vim.v.count) end)
+
 -- Load keymap so we can use its bridge
 require('bex.keymap')
 
