@@ -16,6 +16,10 @@
 --
 --     cmd['normal!']('gvGG')
 --
+-- You can capture output using the `.output` modifier:
+--
+--     local hello = cmd.echo.output("Hello, world!")
+--
 --# Controlling Behavior
 --
 -- How function arguments are formatted can be overridden by setting a list of
@@ -62,7 +66,16 @@
 -- Parameter handlers are invoked sequentially until all parameters have been
 -- handled.  The `_` handler, if present, is invoked repeatedly to handle any
 -- trailing parameters.  The final command is formed from all tokens
--- interspered with the separator string.
+-- interspered with the `separator` field on the command function (default `" "`).
+-- If fewer parameters were passed than handlers wished to consume, the command
+-- is still executed with as many tokens were generated to that point.  This
+-- allows many Ex commands that take variable arguments to "just work", e.g.:
+--
+--     -- Passing one argument works
+--     cmd.augroup('foo')
+--     cmd.augroup('END')
+--     -- Passing none also works.  This scrapes all defined autocommand groups.
+--     local dump = cmd.augroup.output()
 --
 --# Autoloading
 --
@@ -70,6 +83,9 @@
 -- `bex.autoload.<cmd>` (without any trailing `!`) as a Lua module if it
 -- exists.  This module should set up any parameter handlers, etc.  Modules are
 -- provided for several built-in Ex commands.
+--
+-- Bex does not presently understand abbreviations, so you should always use
+-- the full name of a command to ensure overrides are loaded for it.
 
 local param = require 'bex.param'
 
@@ -134,6 +150,7 @@ end
 -- escaped with backslashes.
 -- @function context:escape
 -- @param arg The token.
+-- @param chars A string containing characters to escape.
 function ctx_mt:escape(arg, chars)
     table.insert(self._tokens, vim.fn.escape(tostring(arg), chars))
 end

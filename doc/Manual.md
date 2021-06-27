@@ -11,7 +11,7 @@ as the action:
 
     local cmd = require('bex.cmd')
     cmd.augroup('my_group')
-    cmd.augroup.bang()
+    cmd.autocmd.bang()
     cmd.autocmd('CursorHold', '*', function() print("CursorHold fired!") end)
     cmd.augroup('END')
 
