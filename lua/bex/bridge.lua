@@ -1,7 +1,7 @@
 --- Lua-to-VIM function bridge.
 --
--- Exposes Lua functions in the `v:lua` table.  Create a namespace
--- for your module by indexing this module, e.g.:
+-- Exposes Lua functions in the `v:lua` table and as global Vim functions.
+-- Create a namespace for your module by indexing this module, e.g.:
 --
 --     local bridge = require('bex.bridge').my_module
 --
@@ -10,8 +10,9 @@
 --
 --     local ident = bridge[function(...) ... end]
 --
--- This identifier can then be used in VIM functions, ex commands, etc.:
+-- This identifier can then be used in Vim functions, Ex commands, etc.:
 --
+--     -- An example, use `bex.cmd` for this instead
 --     vim.cmd("autocmd mygroup FileType * call " .. ident .. "()")
 --
 -- To prevent registrations from growing without bound if you
