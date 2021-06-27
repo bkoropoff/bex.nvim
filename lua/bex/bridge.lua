@@ -78,7 +78,7 @@ function bridge_ns_mt.gc(ns)
         if type(func) ~= 'string' and not pred(id) then
             ns[func] = nil
             _G[id] = nil
-            vim.g[id] = nil
+            vim.g["Lua" .. id] = nil
             vim.cmd("delfunction! " .. id)
         end
     end
