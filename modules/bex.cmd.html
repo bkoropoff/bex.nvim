@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>bex documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>bex</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_context">Class context </a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/bex.autoload.augroup.html">bex.autoload.augroup</a></li>
+  <li><a href="../modules/bex.autoload.autocmd.html">bex.autoload.autocmd</a></li>
+  <li><a href="../modules/bex.autoload.command.html">bex.autoload.command</a></li>
+  <li><a href="../modules/bex.bridge.html">bex.bridge</a></li>
+  <li><a href="../modules/bex.builtin.map.html">bex.builtin.map</a></li>
+  <li><strong>bex.cmd</strong></li>
+  <li><a href="../modules/bex.keymap.html">bex.keymap</a></li>
+  <li><a href="../modules/bex.param.html">bex.param</a></li>
+</ul>
+<h2>Topics</h2>
+<ul class="">
+  <li><a href="../topics/Manual.md.html">Manual</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>bex.cmd</code></h1>
+<p>Ex command bridge.</p>
+<p>
+
+
+<h1>Basic Usage</h1>
+
+<p> Exposes Ex commands as Lua functions.  To use a command as a function,
+ simply index this module, e.g:</p>
+
+
+<pre>
+<span class="keyword">local</span> cmd = <span class="global">require</span>(<span class="string">'bex.cmd'</span>)
+cmd.echo(<span class="string">"Hello, world!"</span>)
+</pre>
+
+<p> Append <code>.bang</code> to a command to access its <code>!</code> variant:</p>
+
+
+<pre>
+cmd.normal.bang(<span class="string">'gvGG'</span>)
+</pre>
+
+<p> This also works:</p>
+
+
+<pre>
+cmd[<span class="string">'normal!'</span>](<span class="string">'gvGG'</span>)
+</pre>
+
+<p> You can capture output using the <code>.output</code> modifier:</p>
+
+
+<pre>
+<span class="keyword">local</span> hello = cmd.echo.output(<span class="string">"Hello, world!"</span>)
+</pre>
+
+<h1>Controlling Behavior</h1>
+
+<h2>Parameters Handling</h2>
+<p> How function arguments are formatted can be overridden by setting a list of
+ parameter handlers on a command function.  The <a href="../modules/bex.param.html#">bex.param</a> module contains a
+ set of useful stock handlers.  For example, the <code>echo</code> command has its
+ parameters defined roughly as follows</p>
+
+
+<pre>
+<span class="keyword">local</span> param = <span class="global">require</span>(<span class="string">'bex.param'</span>)
+
+<span class="comment">-- Double-quote all parameters
+</span>cmd.echo.params = {_ = param.quote}
+</pre>
+
+<p> The <code>Plug</code> command from the popular vim-plug package can be wrapped as
+ follows:</p>
+
+
+<pre>
+cmd.Plug.params = {param.squote, param.call(vim.fn.<span class="global">string</span>)}
+cmd.Plug.separator = <span class="string">", "</span>
+</pre>
+
+<p> You can write custom parameter handlers as functions that take a command
+ context object and make appropriate method calls to it.  A handler can pop
+ remaining function parameters off the stack and add tokens to the formatted
+ command as it sees fit.  There is no strict one-to-one correspondence between
+ input parameters and output tokens.  The <a href="../modules/bex.param.html#cmd">param.cmd</a> handler is a good example
+ of a sophisticated parameter handler:</p>
+
+
+<pre>
+<span class="keyword">function</span> param.cmd(bridge_ns)
+    <span class="keyword">return</span> <span class="keyword">function</span>(ctx)
+        it = ctx:pop()
+        <span class="keyword">if</span> bridge_ns <span class="keyword">and</span> vim.is_callable(it) <span class="keyword">then</span>
+            it = <span class="string">"call v:lua."</span> .. bridge_ns[it] .. <span class="string">"()"</span>
+            ctx:raw(it)
+        <span class="keyword">else</span>
+            ctx:push(it)
+            <span class="keyword">while</span> ctx:remaining() ~= <span class="number">0</span> <span class="keyword">do</span>
+                ctx:raw(ctx:pop())
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre>
+
+<p> Given a <a href="../modules/bex.bridge.html#">bex.bridge</a> namespace, it returns a handler that can accept either a
+ Lua callable or a series of raw tokens forming the command.</p>
+
+<p> Parameter handlers are invoked sequentially until all parameters have been
+ handled.  The <code>_</code> handler, if present, is invoked repeatedly to handle any
+ trailing parameters.  The final command is formed from all tokens
+ interspered with the <code>separator</code> field on the command function (default <code>&quot; &quot;</code>).
+ If fewer parameters were passed than handlers wished to consume, the command
+ is still executed with as many tokens were generated to that point.  This
+ allows many Ex commands that take variable arguments to "just work", e.g.:</p>
+
+
+<pre>
+<span class="comment">-- Passing one argument works
+</span>cmd.augroup(<span class="string">'foo'</span>)
+cmd.augroup(<span class="string">'END'</span>)
+<span class="comment">-- Passing none also works.  This scrapes all defined autocommand groups.
+</span><span class="keyword">local</span> dump = cmd.augroup.output()
+</pre>
+
+<h2>Pre and Post Functions</h2>
+
+<p> You can further customize behavior of the command by overriding <code>pre</code> and <code>post</code>
+ functions.  The defaults for a given command look like:</p>
+
+
+<pre>
+<span class="comment">-- Receives the command string to be executed, and may return
+</span><span class="comment">-- a modified version
+</span><span class="keyword">function</span> cmd.&lt;cmd&gt;.pre(ctx, cmdstr)
+    <span class="keyword">return</span> cmdstr
+<span class="keyword">end</span>
+
+<span class="comment">-- Receives the result from executing the command (<code>nil</code> if not
+</span><span class="comment">-- capturing output) and mat return something different
+</span><span class="keyword">function</span> cmd.&lt;cmd&gt;.post(ctx, result)
+    <span class="keyword">return</span> result
+<span class="keyword">end</span>
+</pre>
+
+<h1>Autoloading</h1>
+
+<p> When a command function is first accessed, bex will attempt to load
+ <code>bex.autoload.&lt;cmd&gt;</code> (without any trailing <code>!</code>) as a Lua module if it
+ exists.  This module should set up any parameter handlers, etc.  Modules are
+ provided for several built-in Ex commands.</p>
+
+<p> Bex does not presently understand abbreviations, so you should always use
+ the full name of a command to ensure overrides are loaded for it.</p>
+</p>
+
+
+<h2><a href="#Class_context">Class context </a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#context:pop">context:pop ()</a></td>
+	<td class="summary">Pop next argument.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:push">context:push (arg)</a></td>
+	<td class="summary">Push argument back on stack.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:remaining">context:remaining ()</a></td>
+	<td class="summary">Remaining arguments.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:raw">context:raw (arg)</a></td>
+	<td class="summary">Emit raw token.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:escape">context:escape (arg, chars)</a></td>
+	<td class="summary">Emit escaped token.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:fname">context:fname (arg)</a></td>
+	<td class="summary">Emit filename token.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:squote">context:squote (arg)</a></td>
+	<td class="summary">Emit single-quoted token.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#context:quote">context:quote (arg)</a></td>
+	<td class="summary">Emit double-quoted token.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header has-description"><a name="Class_context"></a>Class context </h2>
+
+          <div class="section-description">
+          Command context. </p>
+
+<p> Controls how function parameters are converted into a formatted Ex command.
+ A parameter handler pops function parameters off the context stack
+ and emits tokens by invoking methods on the context.
+          </div>
+    <dl class="function">
+    <dt>
+    <a name = "context:pop"></a>
+    <strong>context:pop ()</strong>
+    </dt>
+    <dd>
+    Pop next argument. </p>
+
+<p> Pops the next function argument for the command off the stack.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        The argument
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:push"></a>
+    <strong>context:push (arg)</strong>
+    </dt>
+    <dd>
+    Push argument back on stack. </p>
+
+<p> Pushes an unwanted argument back on the stack so it can be consumed
+ by the next handler.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The argument
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:remaining"></a>
+    <strong>context:remaining ()</strong>
+    </dt>
+    <dd>
+    Remaining arguments. </p>
+
+<p> Get count of remaining arguments on the stack.
+ by the next handler.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        The count.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:raw"></a>
+    <strong>context:raw (arg)</strong>
+    </dt>
+    <dd>
+    Emit raw token. </p>
+
+<p> Adds a token to the formatted command with no escaping.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The token.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:escape"></a>
+    <strong>context:escape (arg, chars)</strong>
+    </dt>
+    <dd>
+    Emit escaped token. </p>
+
+<p> Adds a token to the formatted command with the specified characters
+ escaped with backslashes.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The token.
+        </li>
+        <li><span class="parameter">chars</span>
+         A string containing characters to escape.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:fname"></a>
+    <strong>context:fname (arg)</strong>
+    </dt>
+    <dd>
+    Emit filename token. </p>
+
+<p> Adds a token to the formatted command escaped using the <code>fnameescape</code>
+ Vim function.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The token.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:squote"></a>
+    <strong>context:squote (arg)</strong>
+    </dt>
+    <dd>
+    Emit single-quoted token. </p>
+
+<p> Adds a token to the formatted command enclosed in single quotes.
+ It is an error for the argument to contain any single quote
+ character itself.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The token.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "context:quote"></a>
+    <strong>context:quote (arg)</strong>
+    </dt>
+    <dd>
+    Emit double-quoted token. </p>
+
+<p> Adds a token to the formatted command enclosed in double quotes,
+ with any double quotes or backslashes within the token escaped with
+ backslashes.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">arg</span>
+         The token.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-06-29 21:08:43 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

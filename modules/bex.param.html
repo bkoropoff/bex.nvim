@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>bex documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>bex</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/bex.autoload.augroup.html">bex.autoload.augroup</a></li>
+  <li><a href="../modules/bex.autoload.autocmd.html">bex.autoload.autocmd</a></li>
+  <li><a href="../modules/bex.autoload.command.html">bex.autoload.command</a></li>
+  <li><a href="../modules/bex.bridge.html">bex.bridge</a></li>
+  <li><a href="../modules/bex.builtin.map.html">bex.builtin.map</a></li>
+  <li><a href="../modules/bex.cmd.html">bex.cmd</a></li>
+  <li><a href="../modules/bex.keymap.html">bex.keymap</a></li>
+  <li><strong>bex.param</strong></li>
+</ul>
+<h2>Topics</h2>
+<ul class="">
+  <li><a href="../topics/Manual.md.html">Manual</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>bex.param</code></h1>
+<p>Stock parameter handlers</p>
+<p> This module contains parameter handlers or factories for
+ use when setting up commands in <a href="../modules/bex.cmd.html#">bex.cmd</a></p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#default">default (ctx)</a></td>
+	<td class="summary">Default parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#fname">fname (ctx)</a></td>
+	<td class="summary">Filename parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#quote">quote (ctx)</a></td>
+	<td class="summary">Single quote parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#squote">squote (ctx)</a></td>
+	<td class="summary">Double quote parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#raw">raw (ctx)</a></td>
+	<td class="summary">Raw parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#cmd">cmd (bridge_ns)</a></td>
+	<td class="summary">Command parameter handler (factory).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#plusplusopt">plusplusopt (ctx)</a></td>
+	<td class="summary">++opt parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#plusopt">plusopt (ctx)</a></td>
+	<td class="summary">+opt parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#minusopt">minusopt (ctx)</a></td>
+	<td class="summary">-opt parameter handler.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#star">star (inner)</a></td>
+	<td class="summary">Kleene-star like parameter handler factory.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#call">call (func)</a></td>
+	<td class="summary">Call simple function (factory).</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "default"></a>
+    <strong>default (ctx)</strong>
+    </dt>
+    <dd>
+    Default parameter handler. </p>
+
+<p> One parameter in, one token out.  Escapes only spaces and backslash.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "fname"></a>
+    <strong>fname (ctx)</strong>
+    </dt>
+    <dd>
+    Filename parameter handler. </p>
+
+<p> One parameter in, one token out.  Escapes as a filename.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "quote"></a>
+    <strong>quote (ctx)</strong>
+    </dt>
+    <dd>
+    Single quote parameter handler. </p>
+
+<p> One parameter in, one token out.  Surrounds with single quotes.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "squote"></a>
+    <strong>squote (ctx)</strong>
+    </dt>
+    <dd>
+    Double quote parameter handler. </p>
+
+<p> One paramter in, one token out.  Surrounds with double quotes, escaping contents.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "raw"></a>
+    <strong>raw (ctx)</strong>
+    </dt>
+    <dd>
+    Raw parameter handler. </p>
+
+<p> One paramter in, one token out.  Performs no escaping.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "cmd"></a>
+    <strong>cmd (bridge_ns)</strong>
+    </dt>
+    <dd>
+    Command parameter handler (factory). </p>
+
+<p> Returns a parameter handler that formats an Ex command,
+ e.g. for autocmd and similar that take a trailing command
+ as a parameter.</p>
+
+<p> If <code>bridge_ns</code> is provided, a callable as a parameter will
+ result in a command that calls it with no arguments.
+ Otherwise, all remaining parameters are emited as
+ raw tokens.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">bridge_ns</span>
+         An optional namespace for bridging Lua functions.
+   See <a href="../modules/bex.bridge.html#">bex.bridge</a>.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        A new handler.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "plusplusopt"></a>
+    <strong>plusplusopt (ctx)</strong>
+    </dt>
+    <dd>
+    ++opt parameter handler. </p>
+
+<p> Emits a <code>++opt</code> style parameter verbatim if it matches, and
+ does nothing otherwise.  Suitable for use with <a href="../modules/bex.param.html#star">bex.param.star</a>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "plusopt"></a>
+    <strong>plusopt (ctx)</strong>
+    </dt>
+    <dd>
+    +opt parameter handler. </p>
+
+<p> Emits a <code>+opt</code> style parameter verbatim if it matches, and
+ does nothing otherwise.  Suitable for use with <a href="../modules/bex.param.html#star">bex.param.star</a>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "minusopt"></a>
+    <strong>minusopt (ctx)</strong>
+    </dt>
+    <dd>
+    -opt parameter handler. </p>
+
+<p> Emits a -opt style parameter verbatim if it matches, and
+ does nothing otherwise.  Suitable for use with <a href="../modules/bex.param.html#star">bex.param.star</a>.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">ctx</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "star"></a>
+    <strong>star (inner)</strong>
+    </dt>
+    <dd>
+    Kleene-star like parameter handler factory. </p>
+
+<p> Runs another handler until it returns falsity.
+ Useful with <a href="../modules/bex.param.html#plusplusopt">bex.param.plusplusopt</a>, etc.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">inner</span>
+         The inner parameter handler
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        A new handler.
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "call"></a>
+    <strong>call (func)</strong>
+    </dt>
+    <dd>
+    Call simple function (factory). </p>
+
+<p> Handles a single parameter by passing it to a function and
+ emiting the result as a raw token.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">func</span>
+         The function.
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        A new handler.
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-06-29 21:08:43 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>bex documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>bex</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/bex.autoload.augroup.html">bex.autoload.augroup</a></li>
+  <li><a href="../modules/bex.autoload.autocmd.html">bex.autoload.autocmd</a></li>
+  <li><a href="../modules/bex.autoload.command.html">bex.autoload.command</a></li>
+  <li><a href="../modules/bex.bridge.html">bex.bridge</a></li>
+  <li><a href="../modules/bex.builtin.map.html">bex.builtin.map</a></li>
+  <li><a href="../modules/bex.cmd.html">bex.cmd</a></li>
+  <li><strong>bex.keymap</strong></li>
+  <li><a href="../modules/bex.param.html">bex.param</a></li>
+</ul>
+<h2>Topics</h2>
+<ul class="">
+  <li><a href="../topics/Manual.md.html">Manual</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>bex.keymap</code></h1>
+<p>Lua keymap API.</p>
+<p> This module provides a more convenient API for manipulating keymaps
+ than using Ex commands (which is also supported) or raw NVIM
+ API calls.</p>
+
+<p> Use <a href="../modules/bex.keymap.html#set">bex.keymap.set</a> to set keymap entries, and <a href="../modules/bex.keymap.html#delete">bex.keymap.delete</a> to
+ remove them.</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#set">set (tbl, bufnr)</a></td>
+	<td class="summary">Set keymap entries.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#delete">delete (entry, bufnr)</a></td>
+	<td class="summary">Delete keymap entry.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "set"></a>
+    <strong>set (tbl, bufnr)</strong>
+    </dt>
+    <dd>
+    Set keymap entries. </p>
+
+<p> Sets all entries in <code>tbl</code>, which should conform to the following format:</p>
+<pre><code> {
+     &lt;option&gt;: &lt;value&gt;,
+     ...,
+     ["&lt;modes&gt; &lt;lhs&gt;"] = &lt;rhs&gt;,
+     ...
+ }
+</code></pre>
+
+<p> Each <code>option</code> may be a valid keymap option, all of which take boolean values:</p>
+
+<ul>
+    <li>buffer</li>
+    <li>expr</li>
+    <li>noremap</li>
+    <li>nowait</li>
+    <li>script</li>
+    <li>silent</li>
+    <li>unique</li>
+</ul>
+
+<p> In each map entry, <code>&lt;modes&gt;</code> should be one or more of the usual map modes, e.g.
+ <code>xo</code> for both <code>x</code> and <code>o</code> mappings.</p>
+
+<p> <code>&lt;lhs&gt;</code> should be the usual sequence of key presses as you would use with the
+ standard Ex commands.</p>
+
+<p> <code>&lt;rhs&gt;</code> may be a string, in which case it behaves as the <code>&lt;rhs&gt;</code> in the standard
+ Ex commands.  It may instead be a callable object, in which case the mapping
+ will call it with no parameters.</p>
+
+<p> If <code>&lt;rhs&gt;</code> is a table, its first entry (index <code>1</code>) is treated as above, with additional
+ option keys in the table overriding those from the outer table.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tbl</span>
+         The binding table as described above.
+        </li>
+        <li><span class="parameter">bufnr</span>
+         If the <code>buffer</code> option is specified, which buffer to apply mappings to.
+   Defaults to <code>0</code>, the current buffer.
+        </li>
+    </ul>
+
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="comment">-- Print "Hello, world!" when pressing key sequence in
+</span><span class="comment">-- normal or visual mode in the current buffer
+</span>keymap = <span class="global">require</span>(<span class="string">'bex.keymap'</span>)
+keymap.set {
+    buffer = <span class="keyword">true</span>,
+    [<span class="string">"nx &lt;Leader&gt;zzz"</span>] = <span class="keyword">function</span>() <span class="global">print</span>(<span class="string">"Hello, world!"</span>) <span class="keyword">end</span>
+}</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "delete"></a>
+    <strong>delete (entry, bufnr)</strong>
+    </dt>
+    <dd>
+    Delete keymap entry. </p>
+
+<p> Deletes the given keymap entry.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">entry</span>
+         The entry to unmap, which is the same format used
+   in <a href="../modules/bex.keymap.html#set">bex.keymap.set</a>: <code>&quot;&lt;modes&gt; &lt;lhs&gt;&quot;</code>
+        </li>
+        <li><span class="parameter">bufnr</span>
+         If <code>nil</code>, delete from the global keymap.  Otherwise, delete
+   from the keymap for that buffer.  <code>0</code> specifies the current buffer.
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2021-06-29 21:08:43 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
