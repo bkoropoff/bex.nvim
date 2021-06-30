@@ -22,6 +22,7 @@
 --
 --# Controlling Behavior
 --
+--## Parameters Handling
 -- How function arguments are formatted can be overridden by setting a list of
 -- parameter handlers on a command function.  The `bex.param` module contains a
 -- set of useful stock handlers.  For example, the `echo` command has its
@@ -76,6 +77,23 @@
 --     cmd.augroup('END')
 --     -- Passing none also works.  This scrapes all defined autocommand groups.
 --     local dump = cmd.augroup.output()
+--
+--## Pre and Post Functions
+--
+-- You can further customize behavior of the command by overriding `pre` and `post`
+-- functions.  The defaults for a given command look like:
+--
+--     -- Receives the command string to be executed, and may return
+--     -- a modified version
+--     function cmd.<cmd>.pre(ctx, cmdstr)
+--         return cmdstr
+--     end
+--
+--     -- Receives the result from executing the command (`nil` if not
+--     -- capturing output) and mat return something different
+--     function cmd.<cmd>.post(ctx, result)
+--         return result
+--     end
 --
 --# Autoloading
 --
@@ -195,9 +213,7 @@ function ctx_mt:__index(i)
     return ctx_mt[i]
 end
 
--- co (command object): proxy object for ex commands
-
-local function co_format(co, args)
+local function ctx_new(co, args)
     local ctx = {
         co = co,
         _tokens = {},
@@ -210,13 +226,18 @@ local function co_format(co, args)
 
     setmetatable(ctx, ctx_mt)
 
+    return ctx
+end
+
+local function ctx_format(ctx)
+    local co = ctx.co
     local status, err = pcall(function()
         for _, fn in ipairs(co.params) do
             fn(ctx)
         end
 
         if #(ctx._stack) ~= 0 then
-            fn = co.params._
+            local fn = co.params._
             if fn == nil then
                 error("Too many arguments to " .. co.name)
             end
@@ -233,12 +254,12 @@ local function co_format(co, args)
     return co.name .. " " .. table.concat(ctx._tokens, co.separator)
 end
 
+-- co (command object): proxy object for ex commands
+
 local function co_run(co, args, output)
-    co:pre()
-    local cmdstr = co_format(co, args)
-    local res = vim.api.nvim_exec(cmdstr, output)
-    co:post()
-    return res
+    local ctx = ctx_new(co, args)
+    local cmdstr = co.pre(ctx, ctx_format(ctx))
+    return co.post(ctx, vim.api.nvim_exec(cmdstr, output))
 end
 
 local co_mt = {}
@@ -267,8 +288,8 @@ end
 local function co_new(name)
     co = {
         name = name,
-        pre = function() end,
-        post = function() end,
+        pre = function(ctx, cmdstr) return cmdstr end,
+        post = function(ctx, output) return output end,
         params = {
             _ = param.default
         },
