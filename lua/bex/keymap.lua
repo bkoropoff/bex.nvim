@@ -22,6 +22,7 @@ local option_tab = {
     script = 'boolean',
     silent = 'boolean',
     unique = 'boolean',
+    replace_keycodes = 'boolean',
 }
 
 for _, m in ipairs(mode_list) do
@@ -58,6 +59,9 @@ local function set_option(opts, k, v)
             error("Option '" .. k .. "' value " .. vim.inspect(v) .. " is not a " .. ty)
         end
         opts[k] = v
+        if k == 'expr' and v and opts.replace_keycodes == nil then
+            opts.replace_keycodes = true
+        end
         return true
     end
 end
@@ -80,6 +84,12 @@ local function parse_lhs(lhs)
     end
     lhs = vim.trim(string.sub(lhs, #modestr + 1))
     return modes, lhs
+end
+
+local function wrap_keycodes(rhs)
+    return function()
+        return vim.api.nvim_replace_termcodes(rhs(), true, true, true)
+    end
 end
 
 --- Set keymap entries.
@@ -126,15 +136,18 @@ end
 -- }
 --
 -- @param tbl The binding table as described above.
--- @param bufnr If the `buffer` option is specified, which buffer to apply mappings to.
---   Defaults to `0`, the current buffer.
+-- @param bufnr Which buffer to apply mappings to.  Implies the `buffer = true` option.
 function keymap.set(tbl, bufnr)
     local defaults = {}
 
-    bufnr = bufnr or 0
-
     for k, v in pairs(tbl) do
         set_option(defaults, k, v)
+    end
+
+    if bufnr == nil then
+        bufnr = 0
+    else
+        defaults.buffer = true
     end
 
     for lhs, rhs in pairs(tbl) do
@@ -157,11 +170,22 @@ function keymap.set(tbl, bufnr)
                 error("No RHS specified for mapping: " .. lhs)
             end
             if vim.is_callable(rhs) then
-                ident = bridge[rhs]
-                if opts.expr then
-                    rhs = 'v:lua.' .. ident .. '()'
+                if not vim.fn.has('nvim-0.8') then
+                    if opts.replace_keycodes then
+                        rhs = wrap_keycodes(rhs)
+                    end
+                    opts.replace_keycodes = nil
+                end
+                if vim.fn.has('nvim-0.7') then
+                    opts.callback = rhs
+                    rhs = ''
                 else
-                    rhs = '<cmd>call v:lua.' .. ident .. '<cr>'
+                    ident = bridge[rhs]
+                    if opts.expr then
+                        rhs = 'v:lua.' .. ident .. '()'
+                    else
+                        rhs = '<cmd>call v:lua.' .. ident .. '<cr>'
+                    end
                 end
             elseif type(rhs) ~= 'string' then
                 error("Invalid RHS for '" .. lhs .. "': " .. vim.inspect(rhs)) 
