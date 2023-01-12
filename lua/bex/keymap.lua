@@ -54,16 +54,14 @@ end
 
 local function set_option(opts, k, v)
     local ty = option_tab[k]
-    if ty then
-        if type(v) ~= ty then
-            error("Option '" .. k .. "' value " .. vim.inspect(v) .. " is not a " .. ty)
-        end
-        opts[k] = v
-        if k == 'expr' and v and opts.replace_keycodes == nil then
-            opts.replace_keycodes = true
-        end
-        return true
+    if type(v) ~= ty then
+        error("Option '" .. k .. "' value " .. vim.inspect(v) .. " is not a " .. ty)
     end
+    opts[k] = v
+    if k == 'expr' and v and opts.replace_keycodes == nil then
+        opts.replace_keycodes = true
+    end
+    return true
 end
 
 local function parse_lhs(lhs)
@@ -92,6 +90,56 @@ local function wrap_keycodes(rhs)
     end
 end
 
+local function apply(defaults, modes, lhs, rhs, bufnr)
+    local opts = vim.tbl_extend("keep", {}, defaults)
+    if type(rhs) ~= 'table' then
+        rhs = {rhs}
+    end
+    for k, v in pairs(rhs) do
+        if option_tab[k] then
+            set_option(opts, k, v)
+        elseif k ~= 1 then
+            error("Unknown key in RHS: " .. vim.inspect(k))
+        end
+    end
+    rhs = rhs[1]
+    if not rhs then
+        error("No RHS specified for mapping: " .. lhs)
+    end
+    if vim.is_callable(rhs) then
+        if not vim.fn.has('nvim-0.8') then
+            if opts.replace_keycodes then
+                rhs = wrap_keycodes(rhs)
+            end
+            opts.replace_keycodes = nil
+        end
+        if vim.fn.has('nvim-0.7') then
+            opts.callback = rhs
+            rhs = ''
+        else
+            ident = bridge[rhs]
+            if opts.expr then
+                rhs = 'v:lua.' .. ident .. '()'
+            else
+                rhs = '<cmd>call v:lua.' .. ident .. '<cr>'
+            end
+        end
+    elseif type(rhs) ~= 'string' then
+        error("Invalid RHS for '" .. lhs .. "': " .. vim.inspect(rhs))
+    end
+
+    buf = opts.buffer
+    opts.buffer = nil
+
+    for _, mode in ipairs(modes) do
+        if buf then
+            vim.api.nvim_buf_set_keymap(bufnr, mode, lhs, rhs, opts)
+        else
+            vim.api.nvim_set_keymap(mode, lhs, rhs, opts)
+        end
+    end
+end
+
 --- Set keymap entries.
 --
 -- Sets all entries in `tbl`, which should conform to the following format:
@@ -99,6 +147,10 @@ end
 --         <option>: <value>,
 --         ...,
 --         ["<modes> <lhs>"] = <rhs>,
+--         ["<modes>] = {
+--             ["<lhs>"] = <rhs>
+--             ...
+--         },
 --         ...
 --     }
 --
@@ -132,16 +184,21 @@ end
 -- keymap = require('bex.keymap')
 -- keymap.set {
 --     buffer = true,
---     ["nx <Leader>zzz"] = function() print("Hello, world!") end
+--     ["nx <Leader>zzz"] = function() print("Hello, world!") end,
 -- }
 --
 -- @param tbl The binding table as described above.
 -- @param bufnr Which buffer to apply mappings to.  Implies the `buffer = true` option.
 function keymap.set(tbl, bufnr)
     local defaults = {}
+    local mappings = {}
 
     for k, v in pairs(tbl) do
-        set_option(defaults, k, v)
+        if option_tab[k] then
+            set_option(defaults, k, v)
+        else
+            mappings[k] = v
+        end
     end
 
     if bufnr == nil then
@@ -150,56 +207,19 @@ function keymap.set(tbl, bufnr)
         defaults.buffer = true
     end
 
-    for lhs, rhs in pairs(tbl) do
+    for lhs, rhs in pairs(mappings) do
         if type(lhs) ~= 'string' then
             error("LHS is not a string: " .. vim.inspect(lhs))
         end
-        if not option_tab[lhs] then
-            modes, lhs = parse_lhs(lhs)
-            opts = vim.tbl_extend("keep", {}, defaults)
+        modes, lhs = parse_lhs(lhs)
+        if lhs ~= '' then
+            apply(defaults, modes, lhs, rhs, bufnr)
+        else
             if type(rhs) ~= 'table' then
-                rhs = {rhs}
+                error("RHS is not a table as expected: " .. vim.inspect(rhs))
             end
             for k, v in pairs(rhs) do
-                if not set_option(opts, k, v) and k ~= 1 then
-                    error("Unknown key in RHS: " .. vim.inspect(k))
-                end
-            end
-            rhs = rhs[1]
-            if not rhs then
-                error("No RHS specified for mapping: " .. lhs)
-            end
-            if vim.is_callable(rhs) then
-                if not vim.fn.has('nvim-0.8') then
-                    if opts.replace_keycodes then
-                        rhs = wrap_keycodes(rhs)
-                    end
-                    opts.replace_keycodes = nil
-                end
-                if vim.fn.has('nvim-0.7') then
-                    opts.callback = rhs
-                    rhs = ''
-                else
-                    ident = bridge[rhs]
-                    if opts.expr then
-                        rhs = 'v:lua.' .. ident .. '()'
-                    else
-                        rhs = '<cmd>call v:lua.' .. ident .. '<cr>'
-                    end
-                end
-            elseif type(rhs) ~= 'string' then
-                error("Invalid RHS for '" .. lhs .. "': " .. vim.inspect(rhs)) 
-            end
-
-            buf = opts.buffer
-            opts.buffer = nil
-
-            for _, mode in ipairs(modes) do
-                if buf then
-                    vim.api.nvim_buf_set_keymap(bufnr, mode, lhs, rhs, opts)
-                else
-                    vim.api.nvim_set_keymap(mode, lhs, rhs, opts)
-                end
+                apply(defaults, modes, k, v, bufnr)
             end
         end
     end
